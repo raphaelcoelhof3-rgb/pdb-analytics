@@ -79,9 +79,20 @@ st.caption("Gere o relatório de treino a partir do seu arquivo TCX do Garmin.")
 # ── Upload do TCX ─────────────────────────────────────────────────────────────
 
 st.header("1. Arquivo TCX")
+
+with st.expander("📱 Usando Android? Leia antes de fazer o upload"):
+    st.markdown("""
+O Android restringe o seletor de arquivos e pode não mostrar arquivos `.tcx`.
+
+**Solução simples:**
+1. Localize o arquivo TCX na pasta Downloads
+2. Renomeie-o trocando `.tcx` por `.txt` (ex: `treino.tcx` → `treino.txt`)
+3. Faça o upload normalmente — o app reconhece os dois formatos
+""")
+
 tcx_file = st.file_uploader(
-    "Faça o upload do arquivo exportado do Garmin Connect",
-    type=None,  # aceita qualquer arquivo (necessário para Android)
+    "Selecione o arquivo TCX exportado do Garmin Connect",
+    type=None,
     help="No Garmin Connect: abra a atividade → ⋮ → Exportar para TCX"
 )
 
