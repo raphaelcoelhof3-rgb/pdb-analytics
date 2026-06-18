@@ -81,7 +81,7 @@ st.caption("Gere o relatório de treino a partir do seu arquivo TCX do Garmin.")
 st.header("1. Arquivo TCX")
 tcx_file = st.file_uploader(
     "Faça o upload do arquivo exportado do Garmin Connect",
-    type=["tcx"],
+    type=None,  # aceita qualquer arquivo (necessário para Android)
     help="No Garmin Connect: abra a atividade → ⋮ → Exportar para TCX"
 )
 
@@ -93,7 +93,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     nome_clube = st.text_input("Nome do Clube", value="Nome do Clube")
-    canoa_tipo = st.selectbox("Tipo de Canoa", ["OC6", "OC1", "OC2", "OC3", "OC4", "Va'a", "Outro"])
+    canoa_tipo = st.selectbox("Tipo de Canoa", ["OC1", "OC2", "OC3", "OC4", "OC6", "V1", "V3", "V6", "Outro"])
     distancia_sprint = st.number_input(
         "Distância por tiro (metros)", min_value=100, max_value=5000,
         value=500, step=50
