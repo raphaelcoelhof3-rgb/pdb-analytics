@@ -140,15 +140,12 @@ if qtd_bancos == 1:
     nome_unico = st.text_input("Atleta", value="", placeholder="Nome do atleta")
     nomes_por_banco = [nome_unico]
 else:
-    cols_bancos = st.columns(2)
     for i in range(qtd_bancos):
-        with cols_bancos[i % 2]:
-            nome_banco = st.text_input(f"Banco {i+1}", value="", placeholder=f"Atleta do banco {i+1}", key=f"banco_{i}")
-            nomes_por_banco.append(nome_banco)
+        nome_banco = st.text_input(f"Banco {i+1}", value="", placeholder=f"Atleta do banco {i+1}", key=f"banco_{i}")
+        nomes_por_banco.append(nome_banco)
 
-# Monta a string de nomes na ordem Voga → Leme, ignorando vazios na exibição
-nomes_preenchidos = [n.strip() if n.strip() else "—" for n in nomes_por_banco]
-nomes_membros = ", ".join(nomes_preenchidos)
+# Lista de nomes por banco, preenchendo vazios como "—" (preserva ordem Voga → Leme)
+nomes_membros = [n.strip() if n.strip() else "—" for n in nomes_por_banco]
 
 # ── Observações do treino ─────────────────────────────────────────────────────
 

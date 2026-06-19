@@ -268,12 +268,40 @@ def _pagina_resumo(sprints: list[dict], config: dict) -> str:
     tcx_nome = os.path.basename(config["TCX_FILE"])
 
     # ── Cabeçalho ────────────────────────────────────────────────────────────
+
+    # NOMES_MEMBROS pode vir como string "Nome1, Nome2, ..." (compatibilidade)
+    # ou como lista (preferencial, vindo do app com banco/nome separados)
+    nomes_raw = config.get("NOMES_MEMBROS", "")
+    if isinstance(nomes_raw, str):
+        lista_atletas = [n.strip() for n in nomes_raw.split(",")]
+    else:
+        lista_atletas = list(nomes_raw)
+
+    titulo_atletas = "Atleta" if len(lista_atletas) <= 1 else "Atletas"
+
+    cards_atletas = ""
+    for i, nome in enumerate(lista_atletas):
+        nome_exibido = nome if nome and nome != "—" else "—"
+        label_banco = "Atleta" if len(lista_atletas) <= 1 else f"Banco {i+1}"
+        cards_atletas += f"""
+      <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:6px 8px;">
+        <p style="font-size:10px;opacity:0.7;margin:0;">{label_banco}</p>
+        <p style="font-size:12.5px;font-weight:500;margin:0;">{nome_exibido}</p>
+      </div>"""
+
     header = f"""
 <div class="header">
   <h1>🏝️ {config['NOME_CLUB']} — Planilha de Treino</h1>
   <div class="sub">📅 {ref['DateTimeTreino']} &nbsp;|&nbsp; 🛶 {config['CANOA_TIPO']} &nbsp;|&nbsp; 📄 {tcx_nome}</div>
-  <div class="meta-grid">
-    <span><b>Atletas (Voga › Leme):</b> {config['NOMES_MEMBROS']}</span>
+
+  <div style="border-top:0.5px solid rgba(255,255,255,0.25);margin-top:14px;padding-top:10px;">
+    <p style="font-size:11px;opacity:0.7;margin:0 0 8px;letter-spacing:0.02em;">{titulo_atletas.upper()}</p>
+    <div style="display:grid;grid-template-columns:repeat(2, minmax(0,1fr));gap:6px;">
+      {cards_atletas}
+    </div>
+  </div>
+
+  <div class="meta-grid" style="margin-top:14px;">
     <span><b>Relatório gerado em:</b> {ref['DateTimeNow']}</span>
     <span><b>Duração total:</b> {_duracao_fmt(ref['TreinoDuracao_min'])}</span>
     <span><b>Distância total:</b> {_dist(ref['TreinoDistancia_m'])}</span>
