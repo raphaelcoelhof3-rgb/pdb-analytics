@@ -34,6 +34,15 @@ def _tempo_fmt(segundos_raw):
     seg = int(round(float(segundos_raw)))
     return f"{seg // 60}min {seg % 60:02d}s"
 
+def _duracao_fmt(minutos_raw):
+    """Formata duração de minutos decimais para 'X min e Y seg'."""
+    if minutos_raw is None:
+        return "-"
+    total_seg = int(round(float(minutos_raw) * 60))
+    minutos = total_seg // 60
+    segundos = total_seg % 60
+    return f"{minutos} min e {segundos} seg"
+
 def _consistencia_label(indice: float) -> str:
     """Converte índice bruto em nota 0-100 e rótulo."""
     nota = round((1 - indice) * 100, 1)
@@ -187,8 +196,18 @@ CSS = """
 
   .page-break { page-break-before: always; margin-top: 36px; }
   @media(max-width:600px) {
-    .info-grid, .meta-grid { grid-template-columns: 1fr; }
+    .container { padding: 12px 8px; }
+    .header { padding: 16px 14px; border-radius: 8px; }
+    .header h1 { font-size: 1.25em; line-height: 1.3; }
+    .header .sub { font-size: 0.82em; line-height: 1.5; }
+    .info-grid, .meta-grid { grid-template-columns: 1fr; gap: 4px; }
+    .header .meta-grid { font-size: 0.82em; margin-top: 10px; }
+    .header .meta-grid span { word-break: break-word; }
+    .section { padding: 14px 12px; border-radius: 8px; }
+    .section h2 { font-size: 1.05em; }
     .podium, .stats-row { flex-direction: column; }
+    table { font-size: 0.82em; }
+    th, td { padding: 5px 4px !important; }
   }
 
   /* ── CSS de impressão / PDF ─────────────────────────────────── */
@@ -256,7 +275,7 @@ def _pagina_resumo(sprints: list[dict], config: dict) -> str:
   <div class="meta-grid">
     <span><b>Atletas (Voga › Leme):</b> {config['NOMES_MEMBROS']}</span>
     <span><b>Relatório gerado em:</b> {ref['DateTimeNow']}</span>
-    <span><b>Duração total:</b> {_br(ref['TreinoDuracao_min'], 1)} min</span>
+    <span><b>Duração total:</b> {_duracao_fmt(ref['TreinoDuracao_min'])}</span>
     <span><b>Distância total:</b> {_dist(ref['TreinoDistancia_m'])}</span>
     <span><b>Distância por tiro:</b> {_br(config['DISTANCIA_SPRINT'], 0)} m em {config['NUMERO_PARTES']} partes</span>
     <span><b>Total de tiros:</b> {total}</span>
@@ -271,6 +290,17 @@ def _pagina_resumo(sprints: list[dict], config: dict) -> str:
     <div class="info-item">🏆 <b>Melhor tiro:</b> Tiro {melhor['OrdemExecucaoSprint']} (Score {_br(melhor['ScoreSprint'], 1)})</div>
     <div class="info-item">📉 <b>Pior tiro:</b> Tiro {pior['OrdemExecucaoSprint']} (Score {_br(pior['ScoreSprint'], 1)})</div>
   </div>
+</div>"""
+
+    # ── Observações do treino ───────────────────────────────────────────────────
+    observacoes_texto = (config.get("OBSERVACOES") or "").strip()
+    observacoes_html = ""
+    if observacoes_texto:
+        observacoes_formatadas = observacoes_texto.replace("\n", "<br>")
+        observacoes_html = f"""
+<div class="section">
+  <h2>📝 Observações do Treino</h2>
+  <p style="white-space:pre-wrap;line-height:1.6;">{observacoes_formatadas}</p>
 </div>"""
 
     # ── Pódio ─────────────────────────────────────────────────────────────────
@@ -341,7 +371,7 @@ def _pagina_resumo(sprints: list[dict], config: dict) -> str:
   </table>
 </div>"""
 
-    return header + resumo + podio + ranking
+    return header + resumo + observacoes_html + podio + ranking
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

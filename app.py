@@ -13,6 +13,7 @@ Para hospedar gratuitamente:
 import sys
 import os
 import tempfile
+from datetime import datetime
 
 import streamlit as st
 
@@ -119,10 +120,44 @@ with col2:
         "Dividir cada tiro em quantas partes?", [2, 4], index=0
     )
 
-nomes_membros = st.text_input(
-    "Atletas em ordem: Voga → Leme (separados por vírgula)",
-    value="Atleta 1, Atleta 2, Atleta 3, Atleta 4, Atleta 5, Atleta 6",
-    help="Ex: Raphael, João, Maria, Carlos, Ana, Diego"
+# ── Campos dinâmicos de atletas por posição ───────────────────────────────────
+
+st.subheader("Atletas por posição")
+
+QTD_BANCOS = {
+    "OC1": 1, "V1": 1,
+    "OC2": 2,
+    "V3":  3,
+    "OC4": 4,
+    "OC6": 6, "V6": 6,
+    "Outro": 1,
+}
+
+qtd_bancos = QTD_BANCOS.get(canoa_tipo, 1)
+nomes_por_banco = []
+
+if qtd_bancos == 1:
+    nome_unico = st.text_input("Atleta", value="", placeholder="Nome do atleta")
+    nomes_por_banco = [nome_unico]
+else:
+    cols_bancos = st.columns(2)
+    for i in range(qtd_bancos):
+        with cols_bancos[i % 2]:
+            nome_banco = st.text_input(f"Banco {i+1}", value="", placeholder=f"Atleta do banco {i+1}", key=f"banco_{i}")
+            nomes_por_banco.append(nome_banco)
+
+# Monta a string de nomes na ordem Voga → Leme, ignorando vazios na exibição
+nomes_preenchidos = [n.strip() if n.strip() else "—" for n in nomes_por_banco]
+nomes_membros = ", ".join(nomes_preenchidos)
+
+# ── Observações do treino ─────────────────────────────────────────────────────
+
+st.subheader("Observações do treino")
+observacoes = st.text_area(
+    "Anotações livres (opcional)",
+    value="",
+    placeholder="Ex: O atleta do banco 1 trocou de lugar com o atleta do banco 2 a partir do 3º tiro.",
+    height=80,
 )
 
 # ── Pesos do Score ────────────────────────────────────────────────────────────
@@ -192,6 +227,7 @@ if gerar and tcx_file is not None and soma_pesos == 100:
                     "PESO_VELOCIDADE":   peso_vel,
                     "PESO_SUSTENTACAO":  peso_sus,
                     "PESO_CONSISTENCIA": peso_con,
+                    "OBSERVACOES":       observacoes.strip(),
                 }
 
                 sprints = analisar(
@@ -216,8 +252,12 @@ if gerar and tcx_file is not None and soma_pesos == 100:
                             delta=f"Score {s.get('ScoreSprint', '—')}",
                         )
 
-                # Botão de download
-                nome_arquivo = tcx_file.name.replace(".tcx", "_relatorio.html")
+                # Nome do arquivo: Treino_DD-MM-AAAA_NomeDoClube.html
+                data_hoje = datetime.now().strftime("%d-%m-%Y")
+                clube_slug = "".join(c for c in nome_clube if c.isalnum() or c in (" ", "-")).strip()
+                clube_slug = clube_slug.replace(" ", "")
+                nome_arquivo = f"Treino_{data_hoje}_{clube_slug or 'Treino'}.html"
+
                 st.download_button(
                     label="📥 Baixar Relatório HTML",
                     data=html.encode("utf-8"),
