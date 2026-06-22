@@ -225,7 +225,7 @@ if gerar and tcx_file is not None and soma_pesos == 100:
             trackpoints = enrich_trackpoints(trackpoints)
             sprints = detect_sprints(
                 trackpoints,
-                distancia_sprint=float(distancia_sprint),
+                distancia_sprint=lista_distancias,
                 numero_partes=int(numero_partes),
                 qtd_tiros=int(qtd_tiros),
             )
