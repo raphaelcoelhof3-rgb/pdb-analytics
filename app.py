@@ -106,10 +106,6 @@ col1, col2 = st.columns(2)
 with col1:
     nome_clube = st.text_input("Nome do Clube", value="Nome do Clube")
     canoa_tipo = st.selectbox("Tipo de Canoa", ["OC1", "OC2", "OC3", "OC4", "OC6", "V1", "V3", "V6", "Outro"])
-    distancia_sprint = st.number_input(
-        "Distância por tiro (metros)", min_value=100, max_value=5000,
-        value=500, step=50
-    )
 
 with col2:
     qtd_tiros = st.number_input(
@@ -119,6 +115,33 @@ with col2:
     numero_partes = st.selectbox(
         "Dividir cada tiro em quantas partes?", [2, 4], index=0
     )
+
+# Distâncias dos tiros
+st.subheader("Distância dos tiros")
+tiros_variados = st.radio(
+    "Os tiros tiveram distâncias diferentes?",
+    ["Não — todos com a mesma distância", "Sim — distâncias variadas"],
+    horizontal=True,
+)
+
+if tiros_variados.startswith("Não"):
+    distancia_sprint = st.number_input(
+        "Distância por tiro (metros)", min_value=100, max_value=5000,
+        value=500, step=50
+    )
+    lista_distancias = [float(distancia_sprint)] * int(qtd_tiros)
+else:
+    st.caption("Informe a distância de cada tiro na ordem em que foram executados.")
+    lista_distancias = []
+    for i in range(int(qtd_tiros)):
+        d = st.number_input(
+            f"Tiro {i+1} — distância (metros)",
+            min_value=100, max_value=5000,
+            value=500, step=50,
+            key=f"dist_tiro_{i}"
+        )
+        lista_distancias.append(float(d))
+    distancia_sprint = lista_distancias  # passa como lista
 
 # ── Campos dinâmicos de atletas por posição ───────────────────────────────────
 

@@ -68,9 +68,11 @@ def main():
 
     # ── 4. Detecção de sprints ────────────────────────
     print("[3/4] Detectando sprints...")
+    # DISTANCIA_SPRINT pode ser float (única) ou list (variada por tiro)
+    distancia = cfg.get("LISTA_DISTANCIAS") or cfg["DISTANCIA_SPRINT"]
     sprints = detect_sprints(
         trackpoints,
-        distancia_sprint=cfg["DISTANCIA_SPRINT"],
+        distancia_sprint=distancia,
         numero_partes=cfg["NUMERO_PARTES"],
         qtd_tiros=cfg["QTD_TIROS"],
     )
