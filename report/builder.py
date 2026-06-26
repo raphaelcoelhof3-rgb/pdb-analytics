@@ -260,10 +260,9 @@ CSS = """
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _pagina_resumo(sprints: list[dict], config: dict) -> str:
-    ordenadas_score = sorted(sprints, key=lambda s: s.get("ScoreSprint") or 0, reverse=True)
-    com_score = [s for s in ordenadas_score if s.get("ScoreSprint") is not None]
-    melhor = com_score[0]  if com_score else ordenadas_score[0]
-    pior   = com_score[-1] if com_score else ordenadas_score[-1]
+    ordenadas_score = sorted(sprints, key=lambda s: s.get("ScoreSprint", 0), reverse=True)
+    melhor = ordenadas_score[0]
+    pior   = ordenadas_score[-1]
     total  = len(sprints)
     ref    = sprints[0]
     tcx_nome = os.path.basename(config["TCX_FILE"])
@@ -357,7 +356,7 @@ def _pagina_resumo(sprints: list[dict], config: dict) -> str:
     # ── Ranking por Score ─────────────────────────────────────────────────────
     linhas = ""
     for f in ordenadas_score:
-        score = float(f['ScoreSprint']) if f.get('ScoreSprint') is not None else None
+        score = float(f['ScoreSprint'])
         cl    = f['ClassificacaoSprint']
         cor_cl = _cor_classificacao(cl)
         ind_c  = float(f['IndiceConsistencia'])
@@ -365,7 +364,7 @@ def _pagina_resumo(sprints: list[dict], config: dict) -> str:
         linhas += f"""
     <tr>
       <td><b>{f['OrdemScore']}</b></td>
-      <td>{_barra_score(score) if score is not None else '<span style="color:#888">—</span>'}</td>
+      <td>{_barra_score(score)}</td>
       <td>{_vel(f['VelSprint_kmh'])}</td>
       <td>{_br(f['IndiceSustentacao'], 3)}</td>
       <td>{_br(nota_c, 1)}/100<br><small style="color:#666">{rotulo_c}</small></td>
@@ -564,7 +563,7 @@ def _pagina_ranking(sprints: list[dict]) -> str:
       <td>{s['SprintRank_Vel']}</td>
       <td>{_vel(s['VelSprint_kmh'])}</td>
       <td>{_tempo_fmt(s['TempoSprint_s'])}</td>
-      <td>{_barra_score(score) if score is not None else '<span style="color:#888">—</span>'}</td>
+      <td>{_barra_score(score)}</td>
       <td><span class="cl-badge" style="background:{_cor_classificacao(cl)}">{cl}</span></td>
     </tr>"""
 
@@ -935,59 +934,11 @@ def _pagina_graficos(sprints: list[dict]) -> str:
 
 # ── Sobrescreve gerar_html para incluir página 6 ─────────────────────────────
 
-def _agrupar_por_distancia(sprints: list[dict]) -> dict:
-    """Agrupa sprints por DistSprint_alvo, preservando ordem de execução."""
-    grupos = {}
-    for s in sprints:
-        d = s.get("DistSprint_alvo", s.get("DistSprint_real", 0))
-        grupos.setdefault(d, []).append(s)
-    return grupos
-
-
 def gerar_html(sprints: list[dict], config: dict) -> str:
-    grupos = _agrupar_por_distancia(sprints)
-    distancias_unicas = len(grupos) == 1
-
     p1 = _pagina_resumo(sprints, config)
-
-    # Páginas de análise, ranking e detalhamento: uma por grupo de distância
-    p2 = p3 = p4 = ""
-    for dist, grupo in sorted(grupos.items()):
-        unico = len(grupo) == 1
-        label = f" — Tiros de {_br(dist, 0)} m" if not distancias_unicas else ""
-
-        aviso_unico = ""
-        if unico:
-            aviso_unico = """
-<div class="interp" style="margin-bottom:14px;">
-  ⚠️ Este grupo tem apenas 1 tiro — o Score não é calculado pois não há base de comparação.
-  Os índices brutos (Velocidade, Sustentação e Consistência) são exibidos normalmente.
-</div>"""
-
-        secao_analise = _pagina_analise(grupo)
-        if label:
-            secao_analise = secao_analise.replace(
-                "<h1>📈 Análise Técnica do Treino</h1>",
-                f"<h1>📈 Análise Técnica{label}</h1>"
-            )
-        p2 += aviso_unico + secao_analise
-
-        secao_ranking = _pagina_ranking(grupo)
-        if label:
-            secao_ranking = secao_ranking.replace(
-                "<h1>📊 Ranking por Ordem de Execução</h1>",
-                f"<h1>📊 Ranking por Execução{label}</h1>"
-            )
-        p3 += secao_ranking
-
-        secao_det = _pagina_detalhamento(grupo, config["NUMERO_PARTES"])
-        if label:
-            secao_det = secao_det.replace(
-                "<h2>📊 Detalhamento Técnico dos Tiros</h2>",
-                f"<h2>📊 Detalhamento Técnico{label}</h2>"
-            )
-        p4 += secao_det
-
+    p2 = _pagina_analise(sprints)
+    p3 = _pagina_ranking(sprints)
+    p4 = _pagina_detalhamento(sprints, config["NUMERO_PARTES"])
     p5 = _pagina_mapa(sprints)
     p6 = _pagina_graficos(sprints)
     return f"<html><head><meta charset='UTF-8'>{CSS}</head><body><div class='container'>{p1}{p2}{p3}{p4}{p5}{p6}</div></body></html>"
